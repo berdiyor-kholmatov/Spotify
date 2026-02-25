@@ -1,9 +1,10 @@
-package com.example.spotify.ui.theme.mainUI
+package com.example.spotify.ui.home
 
 import android.content.ContentResolver
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.spotify.domain.model.MusicFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,15 +16,6 @@ class SpotifyViewModel: ViewModel() {
 
     private val _musicList = MutableStateFlow(listOf<MusicFile>())
     val musicList: StateFlow<List<MusicFile>> = _musicList
-
-    private val _permissionGranted = MutableStateFlow(false)
-    val permissionGranted: StateFlow<Boolean> = _permissionGranted
-
-
-    fun setPermission() {
-        _permissionGranted.value = true
-    }
-
 
     suspend fun loadFiles () = viewModelScope.launch(Dispatchers.Default){
         val projection = arrayOf(
@@ -78,10 +70,3 @@ class SpotifyViewModel: ViewModel() {
 
 
 }
-
-data class MusicFile(
-    val id: Long? = null,
-    val name: String? = null,
-    val duration: Long? = null,
-    val filePath: String? = null,
-)
