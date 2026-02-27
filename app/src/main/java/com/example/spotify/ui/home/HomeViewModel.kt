@@ -5,19 +5,26 @@ import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spotify.domain.model.MusicFile
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class SpotifyViewModel: ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
 
-    private var contentResolver: ContentResolver? = null
+    private var contentResolver: ContentResolver?,
 
-    private val _musicList = MutableStateFlow(listOf<MusicFile>())
-    val musicList: StateFlow<List<MusicFile>> = _musicList
+) : ViewModel() {
 
-    suspend fun loadFiles () = viewModelScope.launch(Dispatchers.Default){
+    private val _state = MutableStateFlow(HomeViewState())
+    val state = _state.asStateFlow()
+
+    private suspend fun loadFiles () = viewModelScope.launch(Dispatchers.Default){
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
@@ -54,19 +61,46 @@ class SpotifyViewModel: ViewModel() {
                     musicFile.add(MusicFile(id, name, duration, filePath))
                 }
 
-                _musicList.value = musicFile
+                _state.value = _state.value.copy(musics = musicFile)
             }
         }
-    }
-
-    fun setContentResolver(contentResolver: ContentResolver?) {
-        this.contentResolver = contentResolver
     }
 
 
     override fun onCleared() {
         super.onCleared()
     }
+
+
+    fun onEvent(event: HomeViewEvents) {
+        when(event) {
+            is HomeViewEvents.OnMusicSelected -> {
+
+            }
+
+            HomeViewEvents.OnPlayPauseClicked -> {
+
+            }
+
+            HomeViewEvents.OnSkipNextClicked -> {
+
+            }
+
+            HomeViewEvents.OnSkipPreviousClicked -> {
+
+            }
+
+            HomeViewEvents.OnShuffleRepeatLoopClicked -> {
+
+            }
+            HomeViewEvents.PermissionGranted -> {
+                viewModelScope.launch {
+                    loadFiles()
+                }
+            }
+        }
+    }
+
 
 
 }

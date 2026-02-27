@@ -5,13 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.spotify.ui.home.HomeView
 import com.example.spotify.ui.theme.SpotifyTheme
-import com.example.spotify.ui.home.SpotifyMainView
-import com.example.spotify.ui.home.SpotifyViewModel
+import com.example.spotify.ui.home.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    val musicViewModel by viewModels<SpotifyViewModel>()
+    val musicViewModel by viewModels<HomeViewModel>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,9 +24,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SpotifyTheme {
-                SpotifyMainView(musicViewModel)
+                val homeViewModel = hiltViewModel<HomeViewModel>()
+                val state by homeViewModel.state.collectAsState()//collectAsStateWithLifecycle()
+                HomeView(state, homeViewModel::onEvent)
             }
         }
-        musicViewModel.setContentResolver(contentResolver)
     }
 }
