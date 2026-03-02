@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,9 +26,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.ui.component.permission.PermissionRequired
 import com.example.spotify.ui.component.permission.rememberPermissionState
@@ -84,7 +89,6 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
                         onClick = { onEvent(HomeViewEvents.OnMusicSelected(music)) },
                         content = {MusicCell(music)},
                         modifier = Modifier.fillMaxWidth()
-                            .clip(RoundedCornerShape(0.dp))
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                     )
 
@@ -97,11 +101,53 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
                     )
                 }
 
-                item{
+                item {
                     if(state.isPlaying){
-                        Row(modifier = Modifier.padding(8.dp)){
-                            Text("Playing: ${state.selectedMusic?.name}")
+                        Row(modifier = Modifier.padding(8.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                        ){
+                            Text("${state.selectedMusic?.name}", modifier = Modifier.weight(1f))
+                            IconButton(
+//                                modifier = Modifier
+//                                    .size(56.dp)
+//                                    .padding(16.dp),
+                                onClick = {  }
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = R.drawable.skip_previous_24dp),
+                                    contentDescription = null,
+                                    tint =  MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            }
 
+                            IconButton(
+//                                modifier = Modifier
+//                                    .size(56.dp)
+//                                    .padding(16.dp),
+                                onClick = {  }
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = if (!state.isPlaying) R.drawable.play_circle_24dp else R.drawable.pause_circle_24dp),
+                                    contentDescription = null,
+                                    tint =  MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            }
+
+                            IconButton(
+//                                modifier = Modifier
+//                                    .size(56.dp)
+//                                    .padding(16.dp),
+                                onClick = {  }
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = R.drawable.skip_next_24dp),
+                                    contentDescription = null,
+                                    tint =  MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            }
                         }
                     }
                 }
