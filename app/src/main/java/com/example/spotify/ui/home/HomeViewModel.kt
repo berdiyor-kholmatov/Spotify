@@ -4,7 +4,9 @@ import android.content.ContentResolver
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
 import com.example.spotify.domain.model.MusicFile
+import com.example.spotify.player.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -14,11 +16,34 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+
+
+//class MusicViewModel(
+//    application: Application
+//) : AndroidViewModel(application) {
+//
+//    private val player = ExoPlayer.Builder(application).build()
+//
+//    fun play(url: String) {
+//        val mediaItem = MediaItem.fromUri(url)
+//        player.setMediaItem(mediaItem)
+//        player.prepare()
+//        player.play()
+//    }
+//
+//    override fun onCleared() {
+//        super.onCleared()
+//        player.release()
+//    }
+//}
+
+
+
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-
     private var contentResolver: ContentResolver?,
-
+    private val playerManager: PlayerManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeViewState())
@@ -75,7 +100,10 @@ class HomeViewModel @Inject constructor(
     fun onEvent(event: HomeViewEvents) {
         when(event) {
             is HomeViewEvents.OnMusicSelected -> {
-
+                event.music.filePath?.let{
+                    _state.value = _state.value.copy(selectedMusic = event.music, isPlaying = true)
+                    play(event.music.filePath)
+                }
             }
 
             HomeViewEvents.OnPlayPauseClicked -> {
@@ -99,6 +127,13 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun play(url: String) {
+        val mediaItem = MediaItem.fromUri(url)
+        playerManager.player.setMediaItem(mediaItem)
+        playerManager.player.prepare()
+        playerManager.player.play()
     }
 
 
