@@ -102,16 +102,16 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
                 }
 
                 item {
-                    if(state.isPlaying){
+                    if(state.selectedMusic != null){
                         Row(modifier = Modifier.padding(8.dp)
                             .background(MaterialTheme.colorScheme.primaryContainer)
                         ){
-                            Text("${state.selectedMusic?.name}", modifier = Modifier.weight(1f))
+                            Text("${state.selectedMusic.name}", modifier = Modifier.weight(1f))
                             IconButton(
 //                                modifier = Modifier
 //                                    .size(56.dp)
 //                                    .padding(16.dp),
-                                onClick = {  }
+                                onClick = { onEvent(HomeViewEvents.OnSkipPreviousClicked) }
                             ) {
                                 Icon(
                                     modifier = Modifier.size(24.dp),
@@ -125,7 +125,7 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
 //                                modifier = Modifier
 //                                    .size(56.dp)
 //                                    .padding(16.dp),
-                                onClick = {  }
+                                onClick = { onEvent(HomeViewEvents.OnPlayPauseClicked) }
                             ) {
                                 Icon(
                                     modifier = Modifier.size(24.dp),
@@ -139,7 +139,7 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
 //                                modifier = Modifier
 //                                    .size(56.dp)
 //                                    .padding(16.dp),
-                                onClick = {  }
+                                onClick = { onEvent(HomeViewEvents.OnSkipPreviousClicked) }
                             ) {
                                 Icon(
                                     modifier = Modifier.size(24.dp),

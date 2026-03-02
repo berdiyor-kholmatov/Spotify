@@ -107,15 +107,38 @@ class HomeViewModel @Inject constructor(
             }
 
             HomeViewEvents.OnPlayPauseClicked -> {
-
+                if (_state.value.isPlaying) {
+                    playerManager.player.pause()
+                } else {
+                    playerManager.player.play()
+                }
+                _state.value = _state.value.copy(isPlaying = !_state.value.isPlaying)
             }
 
             HomeViewEvents.OnSkipNextClicked -> {
-
+                _state.value.musics.forEachIndexed { index, musicFile ->
+                    if (musicFile.id == _state.value.selectedMusic?.id) {
+                        if (index < _state.value.musics.size - 1) {
+                            _state.value.musics[index + 1].filePath?.let{ filePath ->
+                                play(filePath)
+                            }
+                        }
+                        return
+                    }
+                }
             }
 
             HomeViewEvents.OnSkipPreviousClicked -> {
-
+                _state.value.musics.forEachIndexed { index, musicFile ->
+                    if (musicFile.id == _state.value.selectedMusic?.id) {
+                        if (index > 0) {
+                            _state.value.musics[index - 1].filePath?.let{ filePath ->
+                                play(filePath)
+                            }
+                        }
+                        return
+                    }
+                }
             }
 
             HomeViewEvents.OnShuffleRepeatLoopClicked -> {
