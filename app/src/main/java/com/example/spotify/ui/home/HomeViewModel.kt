@@ -1,13 +1,19 @@
 package com.example.spotify.ui.home
 
 import android.content.ContentResolver
+import android.content.Context
+import android.content.Intent
 import android.provider.MediaStore
+import androidx.compose.material3.Text
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.player.PlayerManager
+import com.example.spotify.service.PlayerService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +49,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private var contentResolver: ContentResolver?,
-    private val playerManager: PlayerManager
+    private val playerManager: PlayerManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeViewState())
@@ -102,8 +109,17 @@ class HomeViewModel @Inject constructor(
             is HomeViewEvents.OnMusicSelected -> {
                 event.music.filePath?.let{
                     _state.value = _state.value.copy(selectedMusic = event.music, isPlaying = true)
-                    play(event.music.filePath)
+                    //play(event.music.filePath)
+
+                    Intent(context, PlayerService::class.java).also {
+                        it.action = PlayerService.Actions.START.toString()
+                        it.putExtra("URI", event.music.filePath)
+                        ContextCompat.startForegroundService(context, it)
+                    }
                 }
+
+
+
             }
 
             HomeViewEvents.OnPlayPauseClicked -> {
@@ -121,6 +137,7 @@ class HomeViewModel @Inject constructor(
                         if (index < _state.value.musics.size - 1) {
                             _state.value.musics[index + 1].filePath?.let{ filePath ->
                                 play(filePath)
+                                _state.value = _state.value.copy(selectedMusic = _state.value.musics[index + 1])
                             }
                         }
                         return
@@ -134,6 +151,7 @@ class HomeViewModel @Inject constructor(
                         if (index > 0) {
                             _state.value.musics[index - 1].filePath?.let{ filePath ->
                                 play(filePath)
+                                _state.value = _state.value.copy(selectedMusic = _state.value.musics[index - 1])
                             }
                         }
                         return

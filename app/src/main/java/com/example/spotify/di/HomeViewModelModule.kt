@@ -19,5 +19,4 @@ object HomeViewModelModule {
         return context.contentResolver
     }
 
-
 }
