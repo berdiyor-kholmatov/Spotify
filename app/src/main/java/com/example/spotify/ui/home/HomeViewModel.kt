@@ -56,7 +56,7 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeViewState())
     val state = _state.asStateFlow()
 
-    private suspend fun loadFiles () = viewModelScope.launch(Dispatchers.Default){
+    private suspend fun loadFiles() = viewModelScope.launch(Dispatchers.Default) {
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
@@ -84,7 +84,7 @@ class HomeViewModel @Inject constructor(
                 val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val filePathColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
 
-                while (it.moveToNext()){
+                while (it.moveToNext()) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn)
                     val duration = it.getLong(durationColumn)
@@ -110,12 +110,6 @@ class HomeViewModel @Inject constructor(
                 event.music.filePath?.let{
                     _state.value = _state.value.copy(selectedMusic = event.music, isPlaying = true)
                     //play(event.music.filePath)
-
-                    Intent(context, PlayerService::class.java).also {
-                        it.action = PlayerService.Actions.START.toString()
-                        it.putExtra("URI", event.music.filePath)
-                        ContextCompat.startForegroundService(context, it)
-                    }
                 }
 
 
@@ -123,11 +117,6 @@ class HomeViewModel @Inject constructor(
             }
 
             HomeViewEvents.OnPlayPauseClicked -> {
-                if (_state.value.isPlaying) {
-                    playerManager.player.pause()
-                } else {
-                    playerManager.player.play()
-                }
                 _state.value = _state.value.copy(isPlaying = !_state.value.isPlaying)
             }
 
@@ -135,10 +124,7 @@ class HomeViewModel @Inject constructor(
                 _state.value.musics.forEachIndexed { index, musicFile ->
                     if (musicFile.id == _state.value.selectedMusic?.id) {
                         if (index < _state.value.musics.size - 1) {
-                            _state.value.musics[index + 1].filePath?.let{ filePath ->
-                                play(filePath)
-                                _state.value = _state.value.copy(selectedMusic = _state.value.musics[index + 1])
-                            }
+                            _state.value = _state.value.copy(selectedMusic = _state.value.musics[index + 1])
                         }
                         return
                     }
@@ -149,10 +135,7 @@ class HomeViewModel @Inject constructor(
                 _state.value.musics.forEachIndexed { index, musicFile ->
                     if (musicFile.id == _state.value.selectedMusic?.id) {
                         if (index > 0) {
-                            _state.value.musics[index - 1].filePath?.let{ filePath ->
-                                play(filePath)
-                                _state.value = _state.value.copy(selectedMusic = _state.value.musics[index - 1])
-                            }
+                            _state.value = _state.value.copy(selectedMusic = _state.value.musics[index - 1])
                         }
                         return
                     }

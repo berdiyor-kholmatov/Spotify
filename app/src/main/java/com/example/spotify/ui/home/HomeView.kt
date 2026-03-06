@@ -1,6 +1,8 @@
 package com.example.spotify.ui.home
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -28,12 +30,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
+import com.example.spotify.service.PlayerService
 import com.example.spotify.ui.component.permission.PermissionRequired
 //import com.example.spotify.ui.component.permission.PermissionRequired
 //import com.example.spotify.ui.component.permission.rememberPermissionState
@@ -47,6 +52,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
 
+    val context = LocalContext.current
     val permissions = if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         listOf(
             Manifest.permission.READ_MEDIA_AUDIO,
@@ -63,20 +69,31 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
     if (multiplePermissionsState.allPermissionsGranted) {
         LaunchedEffect("true") {
             onEvent(HomeViewEvents.PermissionGranted)
+            Intent(context, PlayerService::class.java).also {
+                it.action = PlayerService.Actions.INIT.toString()
+                ContextCompat.startForegroundService(context, it)
+            }
         }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 if (state.selectedMusic != null) {
-                    MiniPlayer(state, onEvent)
+                    MiniPlayer(context, state, onEvent)
                 }
             }
         ) { padding ->
             LazyColumn(modifier = Modifier.systemBarsPadding()) {
                 items(state.musics) { music ->
                     TextButton(
-                        onClick = { onEvent(HomeViewEvents.OnMusicSelected(music)) },
+                        onClick = {
+                            onEvent(HomeViewEvents.OnMusicSelected(music))
+                            Intent(context, PlayerService::class.java).also {
+                                it.action = PlayerService.Actions.START.toString()
+                                it.putExtra("URI", music.filePath)
+                                ContextCompat.startForegroundService(context, it)
+                            }
+                        },
                         content = { MusicCell(music) },
                         modifier = Modifier.fillMaxWidth()
                             .background(MaterialTheme.colorScheme.secondaryContainer)
@@ -98,11 +115,7 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
         }
     }
 
-
-
-
-
-
+/*
 //    PermissionRequired(
 //        permissionState = mediaPermissionState,
 //        notGrantedContent = {
@@ -170,12 +183,14 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
 //            }
 //        }
 //    )
+    */
+
 }
 
 
 
 @Composable
-fun MiniPlayer(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit) {
+fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents) -> Unit) {
 
     Row(
         modifier = Modifier.padding(8.dp)
@@ -184,10 +199,13 @@ fun MiniPlayer(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit) {
     ) {
         Text("${state.selectedMusic?.name}", modifier = Modifier.weight(1f))
         IconButton(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .padding(16.dp),
-            onClick = { onEvent(HomeViewEvents.OnSkipPreviousClicked) }
+            onClick = {
+                onEvent(HomeViewEvents.OnSkipPreviousClicked)
+                Intent(context, PlayerService::class.java).also {
+                    it.action = PlayerService.Actions.PREVIOUS.toString()
+                    context.startService(it)
+                }
+            }
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
@@ -198,10 +216,13 @@ fun MiniPlayer(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit) {
         }
 
         IconButton(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .padding(16.dp),
-            onClick = { onEvent(HomeViewEvents.OnPlayPauseClicked) }
+            onClick = {
+                onEvent(HomeViewEvents.OnPlayPauseClicked)
+                Intent(context, PlayerService::class.java).also {
+                    it.action = if (state.isPlaying) PlayerService.Actions.PAUSE.toString() else PlayerService.Actions.RUN.toString()
+                    context.startService(it)
+                }
+            }
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
@@ -212,10 +233,13 @@ fun MiniPlayer(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit) {
         }
 
         IconButton(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .padding(16.dp),
-            onClick = { onEvent(HomeViewEvents.OnSkipNextClicked) }
+            onClick = {
+                onEvent(HomeViewEvents.OnSkipNextClicked)
+                Intent(context, PlayerService::class.java).also {
+                    it.action = PlayerService.Actions.NEXT.toString()
+                    context.startService(it)
+                }
+            }
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
