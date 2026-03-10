@@ -256,9 +256,6 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
 fun MusicCell(music: MusicFile) {
     Column(modifier = Modifier.padding(8.dp)) {
         Text(music.name ?: "null")
-        Text(music.duration.toString())
-        Text( music.filePath ?: "null")
-        Text( music.id.toString())
     }
 }
 

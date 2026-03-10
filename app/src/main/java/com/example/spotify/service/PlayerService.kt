@@ -2,50 +2,57 @@ package com.example.spotify.service
 
 import android.app.Service
 import android.content.Intent
+import android.os.Binder
 import android.os.IBinder
 import android.provider.MediaStore
+import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.paging.PagingLogger.log
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
-import com.example.spotify.ui.home.HomeViewState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PlayerService: Service() {
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+
+    private val _playerState = MutableStateFlow(PlayerState())
+    val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+
+    private val binder by lazy { PlayerBinder() }
+
+    override fun onBind(intent: Intent?): IBinder = binder
+
+    inner class PlayerBinder: Binder() {
+        fun getPlayerService(): PlayerService = this@PlayerService
     }
+
+    private val serviceScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO
+    )
+
     private lateinit var player: ExoPlayer
     override fun onCreate() {
         super.onCreate()
         player = ExoPlayer.Builder(this).build()
     }
 
-    private val serviceScope = CoroutineScope(
-        SupervisorJob() + Dispatchers.IO
-    )
-    private val _state = MutableStateFlow(PlayerState())
-    val state = _state.asStateFlow()
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when(intent?.action){
-            Actions.INIT.toString() -> serviceScope.launch {
-                loadFiles()
-            }
+            Actions.INIT.toString() -> serviceScope.launch { loadFiles() }
             Actions.START.toString() -> start(intent.getStringExtra("URI"))
             Actions.STOP.toString() -> stopSelf()
-            Actions.PAUSE.toString() -> player.pause()
-            Actions.RUN.toString() -> player.play()
+            Actions.PAUSE.toString() -> playPause()
+            Actions.RUN.toString() -> playPause()
             Actions.NEXT.toString() -> next()
             Actions.PREVIOUS.toString() -> previous()
         }
@@ -53,22 +60,23 @@ class PlayerService: Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private fun playPause(){
+        _playerState.value = _playerState.value.copy(isPlaying = !_playerState.value.isPlaying)
+        if (_playerState.value.isPlaying) player.play() else player.pause()
+    }
     private fun next() {
-        val index = _state.value.musics.indexOfFirst { it.id == _state.value.selectedMusic?.id }
-        if (index < _state.value.musics.size - 1) {
-            start(_state.value.musics[index + 1].filePath)
-            _state.value = _state.value.copy(selectedMusic = _state.value.musics[index + 1])
+        val index = _playerState.value.musics.indexOfFirst { it.id == _playerState.value.selectedMusic?.id }
+        if (index < _playerState.value.musics.size - 1) {
+            start(_playerState.value.musics[index + 1].filePath)
         }
     }
 
     private fun previous() {
-        val index = _state.value.musics.indexOfFirst { it.id == _state.value.selectedMusic?.id }
+        val index = _playerState.value.musics.indexOfFirst { it.id == _playerState.value.selectedMusic?.id }
         if (index > 0) {
-            start(_state.value.musics[index - 1].filePath)
-            _state.value = _state.value.copy(selectedMusic = _state.value.musics[index - 1])
+            start(_playerState.value.musics[index - 1].filePath)
         }
     }
-
 
     private fun start(filePath: String?) {
         val notification = NotificationCompat.Builder(this, "player_channel")
@@ -80,8 +88,7 @@ class PlayerService: Service() {
         filePath?.let {
             play(it)
         }
-        startForeground(1, notification)
-        _state.value = _state.value.copy(isPlaying = true, selectedMusic = _state.value.musics.find { it.filePath == filePath })
+        _playerState.value = _playerState.value.copy(isPlaying = true, selectedMusic = _playerState.value.musics.find { it.filePath == filePath })
     }
 
     private suspend fun loadFiles () = serviceScope.launch(Dispatchers.Default){
@@ -105,7 +112,7 @@ class PlayerService: Service() {
             )
 
 
-            val musicFile = mutableListOf<MusicFile>()
+            val musicFiles = mutableListOf<MusicFile>()
             cursor?.use {
                 val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
@@ -118,15 +125,16 @@ class PlayerService: Service() {
                     val duration = it.getLong(durationColumn)
                     val filePath = it.getString(filePathColumn)
 
-                    musicFile.add(MusicFile(id, name, duration, filePath))
+                    musicFiles.add(MusicFile(id, name, duration, filePath))
                 }
+                Log.d("TTT", "musicFiles: $musicFiles")
 
-                _state.value = _state.value.copy(musics = musicFile)
+                _playerState.value = _playerState.value.copy(musics = musicFiles)
             }
         }
     }
 
-    fun play(url: String) {
+    fun play(url: String) { //yep, i have to change receiving url to uri, and actually i have to change it to the Music file as it can be confusing having any uri instead of music uri
         val mediaItem = MediaItem.fromUri(url)
         player.setMediaItem(mediaItem)
         player.prepare()

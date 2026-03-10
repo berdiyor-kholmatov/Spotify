@@ -1,8 +1,11 @@
 package com.example.spotify.ui.home
 
+import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import android.provider.MediaStore
 import androidx.compose.material3.Text
 import androidx.core.content.ContextCompat
@@ -11,7 +14,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.player.PlayerManager
+import com.example.spotify.repository.homeViewModelRepository.viewModelAndPlayerServiceBinderRepository
 import com.example.spotify.service.PlayerService
+import com.example.spotify.service.PlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
@@ -22,39 +27,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-
-
-//class MusicViewModel(
-//    application: Application
-//) : AndroidViewModel(application) {
-//
-//    private val player = ExoPlayer.Builder(application).build()
-//
-//    fun play(url: String) {
-//        val mediaItem = MediaItem.fromUri(url)
-//        player.setMediaItem(mediaItem)
-//        player.prepare()
-//        player.play()
-//    }
-//
-//    override fun onCleared() {
-//        super.onCleared()
-//        player.release()
-//    }
-//}
-
-
-
-
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private var contentResolver: ContentResolver?,
-    private val playerManager: PlayerManager,
-    @ApplicationContext private val context: Context
+    private val playerServiceState: StateFlow<PlayerState>
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeViewState())
     val state = _state.asStateFlow()
+
+    init { //the order matters, as before where i placed the _state below init it doesn't work
+        viewModelScope.launch {
+            playerServiceState.collect {
+                _state.value = _state.value.copy(
+                    isPlaying = it.isPlaying,
+                    selectedMusic = it.selectedMusic,
+                    musics = it.musics,
+                    playbackMode = it.playbackMode
+                )
+            }
+        }
+    }
+
 
     private suspend fun loadFiles() = viewModelScope.launch(Dispatchers.Default) {
         val projection = arrayOf(
@@ -86,7 +80,7 @@ class HomeViewModel @Inject constructor(
 
                 while (it.moveToNext()) {
                     val id = it.getLong(idColumn)
-                    val name = it.getString(nameColumn)
+                    val name = it.getString(nameColumn).substringBefore(".")
                     val duration = it.getLong(durationColumn)
                     val filePath = it.getString(filePathColumn)
 
@@ -107,59 +101,21 @@ class HomeViewModel @Inject constructor(
     fun onEvent(event: HomeViewEvents) {
         when(event) {
             is HomeViewEvents.OnMusicSelected -> {
-                event.music.filePath?.let{
-                    _state.value = _state.value.copy(selectedMusic = event.music, isPlaying = true)
-                    //play(event.music.filePath)
-                }
-
-
-
             }
 
             HomeViewEvents.OnPlayPauseClicked -> {
-                _state.value = _state.value.copy(isPlaying = !_state.value.isPlaying)
             }
 
             HomeViewEvents.OnSkipNextClicked -> {
-                _state.value.musics.forEachIndexed { index, musicFile ->
-                    if (musicFile.id == _state.value.selectedMusic?.id) {
-                        if (index < _state.value.musics.size - 1) {
-                            _state.value = _state.value.copy(selectedMusic = _state.value.musics[index + 1])
-                        }
-                        return
-                    }
-                }
             }
 
             HomeViewEvents.OnSkipPreviousClicked -> {
-                _state.value.musics.forEachIndexed { index, musicFile ->
-                    if (musicFile.id == _state.value.selectedMusic?.id) {
-                        if (index > 0) {
-                            _state.value = _state.value.copy(selectedMusic = _state.value.musics[index - 1])
-                        }
-                        return
-                    }
-                }
             }
 
             HomeViewEvents.OnShuffleRepeatLoopClicked -> {
-
             }
             HomeViewEvents.PermissionGranted -> {
-                viewModelScope.launch {
-                    loadFiles()
-                }
             }
         }
     }
-
-    fun play(url: String) {
-        val mediaItem = MediaItem.fromUri(url)
-        playerManager.player.setMediaItem(mediaItem)
-        playerManager.player.prepare()
-        playerManager.player.play()
-    }
-
-
-
 }
