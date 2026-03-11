@@ -3,7 +3,7 @@ package com.example.spotify.data.mapper
 import com.example.spotify.data.db.MusicFileEntity
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.domain.util.Mapper
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlin.Long
 
 class DataMapper @Inject constructor(): Mapper<MusicFileEntity, MusicFile> {

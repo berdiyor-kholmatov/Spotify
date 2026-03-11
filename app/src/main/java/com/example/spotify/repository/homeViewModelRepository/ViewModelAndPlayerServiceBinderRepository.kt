@@ -8,8 +8,8 @@ import android.os.IBinder
 import com.example.spotify.service.playerService.PlayerService
 import com.example.spotify.service.playerService.PlayerState
 import dagger.hilt.android.qualifiers.ApplicationContext
-import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

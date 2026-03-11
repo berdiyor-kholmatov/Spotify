@@ -9,18 +9,19 @@ import androidx.core.app.NotificationCompat
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.repository.dataRepository.SpotifyDataRepository
+import com.example.spotify.util.TAG
 import dagger.hilt.android.AndroidEntryPoint
-import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MusicLoaderService: Service() {
+class MusicLoaderService : Service() {
 
     @Inject
-    private lateinit var dataRepository: SpotifyDataRepository
+    lateinit var dataRepository: SpotifyDataRepository
 
     private val serviceScope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO
@@ -32,10 +33,13 @@ class MusicLoaderService: Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        when(intent?.action){
-            Actions.START.toString() -> start()
-            Actions.STOP.toString() -> stopSelf()
-        }
+
+//        when (intent?.action) {
+//            Actions.START.toString() -> start()
+//            Actions.STOP.toString() -> stopSelf()
+//        }
+
+        start()
 
 
         return super.onStartCommand(intent, flags, startId)
@@ -43,17 +47,17 @@ class MusicLoaderService: Service() {
 
 
     private fun start() {
-        val notification = NotificationCompat.Builder(this, "media_store_loader_channel")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Loader is active")
-            .setContentText("Elapsed time: 00:50")
-            .build()
-        startForeground(1, notification)
-
-
+//        NotificationCompat.Builder(this, "media_store_loader_channel")
+//            .setSmallIcon(R.drawable.ic_launcher_foreground)
+//            .setContentTitle("Loader is active")
+//            .setContentText("Elapsed time: 00:50")
+//            .build()
+//        // startForeground(1, notification)
+        Log.d(TAG, "start: ")
+        loadFiles()
     }
 
-    private suspend fun loadFiles () = serviceScope.launch(Dispatchers.Default){
+    private fun loadFiles() = serviceScope.launch(Dispatchers.Default) {
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
@@ -81,7 +85,7 @@ class MusicLoaderService: Service() {
                 val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val filePathColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
 
-                while (it.moveToNext()){
+                while (it.moveToNext()) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn)
                     val duration = it.getLong(durationColumn)
@@ -97,7 +101,7 @@ class MusicLoaderService: Service() {
     }
 
 
-    enum class Actions{
+    enum class Actions {
         START,
         STOP
     }

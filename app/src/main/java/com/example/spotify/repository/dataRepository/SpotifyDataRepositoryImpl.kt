@@ -3,7 +3,7 @@ package com.example.spotify.repository.dataRepository
 import com.example.spotify.data.db.SpotifyDao
 import com.example.spotify.data.mapper.DataMapper
 import com.example.spotify.domain.model.MusicFile
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.service.playerService.PlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
