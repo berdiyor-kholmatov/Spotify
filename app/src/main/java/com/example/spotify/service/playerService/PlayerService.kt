@@ -1,4 +1,4 @@
-package com.example.spotify.service
+package com.example.spotify.service.playerService
 
 import android.app.Service
 import android.content.Intent
@@ -9,7 +9,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.paging.PagingLogger.log
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import kotlinx.coroutines.CoroutineScope

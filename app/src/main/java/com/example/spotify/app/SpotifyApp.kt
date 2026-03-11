@@ -10,19 +10,26 @@ import dagger.hilt.android.HiltAndroidApp
 class SpotifyApp: Application() {
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        createNotificationChannels()
     }
 
-    private fun createNotificationChannel() {
+    private fun createNotificationChannels() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val playerChannel = NotificationChannel(
                 "player_channel",
                 "Running Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             )
 
+            val mediaStoreLoaderChannel = NotificationChannel(
+                "media_store_loader_channel",
+                "MediaStore Loader",
+                NotificationManager.IMPORTANCE_LOW
+            )
+
             val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(playerChannel)
+            notificationManager.createNotificationChannel(mediaStoreLoaderChannel)
         }
     }
 }

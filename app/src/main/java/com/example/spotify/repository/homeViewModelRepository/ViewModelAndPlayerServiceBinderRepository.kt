@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import com.example.spotify.service.PlayerService
-import com.example.spotify.service.PlayerState
+import com.example.spotify.service.playerService.PlayerService
+import com.example.spotify.service.playerService.PlayerState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 
 
 @Singleton
-class viewModelAndPlayerServiceBinderRepository @Inject constructor(
+class ViewModelAndPlayerServiceBinderRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private var playerService: PlayerService? = null

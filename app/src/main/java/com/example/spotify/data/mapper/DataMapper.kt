@@ -3,9 +3,10 @@ package com.example.spotify.data.mapper
 import com.example.spotify.data.db.MusicFileEntity
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.domain.util.Mapper
+import jakarta.inject.Inject
 import kotlin.Long
 
-class DataMapper: Mapper<MusicFileEntity, MusicFile> {
+class DataMapper @Inject constructor(): Mapper<MusicFileEntity, MusicFile> {
     override fun domainToModel(domain: MusicFile): MusicFileEntity {
         return MusicFileEntity(
             id = domain.id,

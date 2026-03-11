@@ -36,7 +36,7 @@
         </activity>
 
         <service
-            android:name=".service.PlayerService"
+            android:name=".service.playerService.PlayerService"
             android:enabled="true"
             android:foregroundServiceType= "mediaPlayback"/>
 
