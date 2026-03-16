@@ -3,7 +3,7 @@ package com.example.spotify.di
 import android.content.ContentResolver
 import android.content.Context
 import com.example.spotify.repository.homeViewModelRepository.ViewModelAndPlayerServiceBinderRepository
-import com.example.spotify.service.playerService.PlayerState
+import com.example.spotify.player.PlayerState
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

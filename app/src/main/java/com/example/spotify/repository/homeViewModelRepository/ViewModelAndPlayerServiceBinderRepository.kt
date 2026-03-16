@@ -6,7 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.example.spotify.service.playerService.PlayerService
-import com.example.spotify.service.playerService.PlayerState
+import com.example.spotify.player.PlayerState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -9,7 +9,7 @@ import kotlin.Long
 class DataMapper @Inject constructor(): Mapper<MusicFileEntity, MusicFile> {
     override fun domainToModel(domain: MusicFile): MusicFileEntity {
         return MusicFileEntity(
-            id = domain.id,
+            id = domain.id ?: 0,
             name = domain.name,
             duration = domain.duration,
             filePath = domain.filePath

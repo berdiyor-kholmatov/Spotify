@@ -1,4 +1,4 @@
-package com.example.spotify.service.playerService
+package com.example.spotify.player
 
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.ui.home.PlaybackMode

@@ -11,6 +11,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
+import com.example.spotify.player.PlayerState
+import com.example.spotify.repository.dataRepository.SpotifyDataRepository
+import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,10 +22,17 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
+@AndroidEntryPoint
 class PlayerService: Service() {
 
+    @Inject
+    lateinit var repository: SpotifyDataRepository
+
+    private val serviceScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO
+    )
 
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
@@ -34,20 +45,25 @@ class PlayerService: Service() {
         fun getPlayerService(): PlayerService = this@PlayerService
     }
 
-    private val serviceScope = CoroutineScope(
-        SupervisorJob() + Dispatchers.IO
-    )
 
     private lateinit var player: ExoPlayer
     override fun onCreate() {
         super.onCreate()
         player = ExoPlayer.Builder(this).build()
+
+        serviceScope.launch {
+            repository.observeMusicFiles().collect {
+                _playerState.update { state ->
+                    state.copy(musics = it)
+                }
+            }
+        }
     }
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when(intent?.action){
-            Actions.INIT.toString() -> serviceScope.launch { loadFiles() }
+            Actions.INIT.toString() -> serviceScope.launch { /*loadFiles()*/ }
             Actions.START.toString() -> start(intent.getStringExtra("URI"))
             Actions.STOP.toString() -> stopSelf()
             Actions.PAUSE.toString() -> playPause()
@@ -88,49 +104,6 @@ class PlayerService: Service() {
             play(it)
         }
         _playerState.value = _playerState.value.copy(isPlaying = true, selectedMusic = _playerState.value.musics.find { it.filePath == filePath })
-    }
-
-    private suspend fun loadFiles () = serviceScope.launch(Dispatchers.Default){
-        val projection = arrayOf(
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.DISPLAY_NAME,
-            MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.DATA
-        )
-
-        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
-        val sortOrder = "${MediaStore.Audio.Media.DISPLAY_NAME} DESC"
-
-        contentResolver?.let { consRes ->
-            val cursor = consRes.query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                selection,
-                null,
-                sortOrder
-            )
-
-
-            val musicFiles = mutableListOf<MusicFile>()
-            cursor?.use {
-                val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-                val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                val filePathColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-
-                while (it.moveToNext()){
-                    val id = it.getLong(idColumn)
-                    val name = it.getString(nameColumn)
-                    val duration = it.getLong(durationColumn)
-                    val filePath = it.getString(filePathColumn)
-
-                    musicFiles.add(MusicFile(id, name, duration, filePath))
-                }
-                Log.d("TTT", "musicFiles: $musicFiles")
-
-                _playerState.value = _playerState.value.copy(musics = musicFiles)
-            }
-        }
     }
 
     fun play(url: String) { //yep, i have to change receiving url to uri, and actually i have to change it to the Music file as it can be confusing having any uri instead of music uri
