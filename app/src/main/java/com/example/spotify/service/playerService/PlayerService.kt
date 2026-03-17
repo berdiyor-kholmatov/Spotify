@@ -53,7 +53,6 @@ class PlayerService: Service() {
         player = ExoPlayer.Builder(this).build()
     }
 
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when(intent?.action){
             Actions.START.toString() -> start(intent.getStringExtra("URI"))
