@@ -59,10 +59,10 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
     if (multiplePermissionsState.allPermissionsGranted) {
         LaunchedEffect("true") {
             onEvent(HomeViewEvents.PermissionGranted)
-            Intent(context, PlayerService::class.java).also {
-                it.action = PlayerService.Actions.INIT.toString()
-                ContextCompat.startForegroundService(context, it)
-            }
+//            Intent(context, PlayerService::class.java).also {
+//                it.action = PlayerService.Actions.INIT.toString()
+//                ContextCompat.startForegroundService(context, it)
+//            }
         }
 
         Scaffold(

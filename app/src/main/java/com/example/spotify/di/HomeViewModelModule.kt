@@ -2,7 +2,7 @@ package com.example.spotify.di
 
 import android.content.ContentResolver
 import android.content.Context
-import com.example.spotify.repository.homeViewModelRepository.ViewModelAndPlayerServiceBinderRepository
+import com.example.spotify.player.PlayerManager
 import com.example.spotify.player.PlayerState
 import dagger.Module
 import dagger.Provides
@@ -24,9 +24,9 @@ object HomeViewModelModule {
 
     @Provides
     @Singleton
-    fun providePlayerServiceState(
-        playerServiceRepositoryBinder: ViewModelAndPlayerServiceBinderRepository
+    fun providePlayerState(
+        playerManager: PlayerManager
     ): StateFlow<PlayerState> {
-        return playerServiceRepositoryBinder.playerState
+        return playerManager.playerState
     }
 }

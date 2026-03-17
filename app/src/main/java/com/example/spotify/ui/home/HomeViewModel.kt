@@ -5,6 +5,7 @@ import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spotify.domain.model.MusicFile
+import com.example.spotify.player.PlayerManager
 import com.example.spotify.player.PlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val playerServiceState: StateFlow<PlayerState>
+    private val playerState: StateFlow<PlayerState>
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeViewState())
@@ -24,7 +25,7 @@ class HomeViewModel @Inject constructor(
 
     init { //the order matters, as before where i placed the _state below init it doesn't work
         viewModelScope.launch {
-            playerServiceState.collect {
+            playerState.collect {
                 _state.value = _state.value.copy(
                     isPlaying = it.isPlaying,
                     selectedMusic = it.selectedMusic,
