@@ -18,7 +18,7 @@ class SpotifyApp: Application() {
             val playerChannel = NotificationChannel(
                 "player_channel",
                 "Running Notifications",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW
             )
 
             val mediaStoreLoaderChannel = NotificationChannel(

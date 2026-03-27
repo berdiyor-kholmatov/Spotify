@@ -38,9 +38,24 @@
         <service
             android:name=".service.playerService.PlayerService"
             android:enabled="true"
-            android:foregroundServiceType= "mediaPlayback"/>
+            android:exported="false"
+            android:foregroundServiceType= "mediaPlayback">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+
+        </service>
 
         <service android:name=".service.musicsLoaderService.MusicLoaderService"/>
+
+        <receiver
+            android:name="androidx.media.session.MediaButtonReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

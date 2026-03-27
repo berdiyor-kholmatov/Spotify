@@ -74,4 +74,8 @@ dependencies {
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    //MediaSession
+    implementation("androidx.media:media:1.7.0")
+    implementation("androidx.media3:media3-exoplayer:1.9.2")
 }

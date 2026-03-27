@@ -1,11 +1,15 @@
 package com.example.spotify.service.playerService
 
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
+import androidx.media.session.MediaButtonReceiver
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.spotify.R
@@ -18,8 +22,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class PlayerService: Service() {
@@ -46,14 +50,119 @@ class PlayerService: Service() {
         fun getPlayerService(): PlayerService = this@PlayerService
     }
 
+    private var isForegroundStarted = false
 
     private lateinit var player: ExoPlayer
+    lateinit var mediaSession: MediaSessionCompat
+
+    private lateinit var notificationManager: NotificationManager
+
+
     override fun onCreate() {
         super.onCreate()
         player = ExoPlayer.Builder(this).build()
+
+        notificationManager = getSystemService(NotificationManager::class.java)
+
+        mediaSession = MediaSessionCompat(this, "PlayerService").apply {
+            setCallback(object : MediaSessionCompat.Callback() {
+
+                override fun onPlay() {
+                    playPause()
+                }
+
+                override fun onPause() {
+                    playPause()
+                }
+
+                override fun onSkipToNext() {
+                    next()
+                }
+
+                override fun onSkipToPrevious() {
+                    previous()
+                }
+            })
+
+            isActive = true
+        }
+
+        mediaSession.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setActions(
+                    PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                            PlaybackStateCompat.ACTION_PLAY or
+                            PlaybackStateCompat.ACTION_PAUSE or
+                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                )
+                .build()
+        )
+
+        observePlayerState()
     }
 
+
+
+    private fun observePlayerState() {
+        serviceScope.launch {
+            playerState.collect { state ->
+                updateNotification(state)
+            }
+        }
+    }
+
+    private fun updateNotification(state: PlayerState) {
+
+        val playIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
+            this,
+            PlaybackStateCompat.ACTION_PLAY_PAUSE
+        )
+
+        val nextIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
+            this,
+            PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+        )
+
+        val prevIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
+            this,
+            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+        )
+
+        val notification = NotificationCompat.Builder(this, "player_channel")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(state.selectedMusic?.name ?: "No track")
+            .addAction(R.drawable.skip_previous_24dp, "Prev", prevIntent)
+            .addAction(
+                if (state.isPlaying) R.drawable.pause_circle_24dp else R.drawable.play_circle_24dp,
+                "Play",
+                playIntent
+            )
+            .addAction(R.drawable.skip_next_24dp, "Next", nextIntent)
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setMediaSession(mediaSession.sessionToken)
+                    .setShowActionsInCompactView(0, 1, 2)
+            )
+            .setOngoing(state.isPlaying)
+            .build()
+
+        if (!isForegroundStarted) {
+            startForeground(1, notification)
+            isForegroundStarted = true
+        } else {
+            notificationManager.notify(1, notification)
+        }
+    }
+
+
+
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        MediaButtonReceiver.handleIntent(mediaSession, intent)
+
+
         when(intent?.action){
             Actions.START.toString() -> start(intent.getStringExtra("URI"))
             Actions.STOP.toString() -> stopSelf()
@@ -86,19 +195,12 @@ class PlayerService: Service() {
 
     private fun start(filePath: String?) {
         val index = playerState.value.musics.indexOfFirst { it.filePath == filePath }
-        Log.d("AAA", "musics: ${playerState.value.musics}")
+
         if (index == -1){
-            Log.d("AAA", "start: music not found")
             return
         }
-        val music = playerState.value.musics[index]
 
-        val notification = NotificationCompat.Builder(this, "player_channel")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Run is active")
-            .setContentText("Elapsed time: 00:50")
-            .build()
-        startForeground(1, notification)
+        val music = playerState.value.musics[index]
 
         play(music)
 
@@ -129,5 +231,4 @@ class PlayerService: Service() {
         super.onDestroy()
     }
 }
-
 
