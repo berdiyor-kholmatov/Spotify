@@ -1,21 +1,31 @@
 package com.example.spotify.ui.home
 
 import android.Manifest
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,11 +34,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.service.playerService.PlayerService
@@ -59,10 +74,6 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
     if (multiplePermissionsState.allPermissionsGranted) {
         LaunchedEffect("true") {
             onEvent(HomeViewEvents.PermissionGranted)
-//            Intent(context, PlayerService::class.java).also {
-//                it.action = PlayerService.Actions.INIT.toString()
-//                ContextCompat.startForegroundService(context, it)
-//            }
         }
 
         Scaffold(
@@ -75,36 +86,68 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
         ) { padding ->
             LazyColumn(modifier = Modifier.systemBarsPadding()) {
                 items(state.musics) { music ->
-                    TextButton(
-                        onClick = {
-                            onEvent(HomeViewEvents.OnMusicSelected(music))
-                            Intent(context, PlayerService::class.java).also {
-                                it.action = PlayerService.Actions.START.toString()
-                                it.putExtra("URI", music.filePath)
-                                ContextCompat.startForegroundService(context, it)
-                            }
-                        },
-                        content = { MusicCell(music) },
-                        modifier = Modifier.fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                    )
 
-                    Spacer(
+                    Row (
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .padding(horizontal = 6.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSecondaryContainer.copy(
-                                    alpha = 0.8f
-                                )
+                            .padding(horizontal = 12.dp,vertical = 8.dp)
+                            .clickable {
+                                onEvent(HomeViewEvents.OnMusicSelected(music))
+                                Intent(context, PlayerService::class.java).also {
+                                    it.action = PlayerService.Actions.START.toString()
+                                    it.putExtra("URI", music.filePath)
+                                    ContextCompat.startForegroundService(context, it)
+                                }
+                            }
+                    ) {
+                        AsyncImage(
+                            model = getAlbumArtUri(music.albumId ?: 0),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(MaterialTheme.colorScheme.error)
+
+                            ,
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        //MusicCell(music)
+                        Column ( modifier = Modifier
+                            .height(56.dp)
+                            .weight(1f)
+                            .padding(4.dp)
+                            .fillMaxWidth(),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                music.name ?: "null",
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                modifier = Modifier.offset(y = (-4).dp)
                             )
-                    )
+                            Text(
+                                music.artist ?: "null",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+
+                items(1){
+                    Box(modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                        .height(50.dp))
+
                 }
             }
         }
     }
-
 /*
 //    PermissionRequired(
 //        permissionState = mediaPermissionState,
@@ -174,7 +217,6 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
 //        }
 //    )
     */
-
 }
 
 
@@ -183,11 +225,49 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
 fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents) -> Unit) {
 
     Row(
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier
+            .padding(8.dp)
             .systemBarsPadding()
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        verticalAlignment =  Alignment.CenterVertically
     ) {
-        Text("${state.selectedMusic?.name}", modifier = Modifier.weight(1f))
+
+        AsyncImage(
+            model = getAlbumArtUri(state.selectedMusic?.albumId ?: 0),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(6.dp)
+                .width(50.dp)
+                .height(50.dp)
+                .clip(RoundedCornerShape(5.dp))
+                .background(MaterialTheme.colorScheme.error)
+            ,
+            contentScale = ContentScale.Crop
+        )
+
+        Column ( modifier = Modifier
+            .height(56.dp)
+            .weight(1f)
+            .padding(4.dp)
+            .fillMaxWidth(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                state.selectedMusic?.name ?: "null",
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+//                modifier = Modifier.offset(y = (-4).dp)
+            )
+            Text(
+                state.selectedMusic?.artist ?: "null",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+
+
         IconButton(
             onClick = {
                 onEvent(HomeViewEvents.OnSkipPreviousClicked)
@@ -244,8 +324,27 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
 
 @Composable
 fun MusicCell(music: MusicFile) {
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text(music.name ?: "null")
-    }
+        Column ( modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+
+        ) {
+            Text(
+                music.name ?: "null",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                music.artist ?: "null",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 }
 
+
+fun getAlbumArtUri(albumId: Long): Uri {
+    return ContentUris.withAppendedId(
+        Uri.parse("content://media/external/audio/albumart"),
+        albumId
+    )
+}

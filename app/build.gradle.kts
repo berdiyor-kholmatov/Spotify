@@ -78,4 +78,8 @@ dependencies {
     //MediaSession
     implementation("androidx.media:media:1.7.0")
     implementation("androidx.media3:media3-exoplayer:1.9.2")
+
+    //coil (compatible with Kotlin 2.0.x)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil:2.7.0")
 }

@@ -2,14 +2,12 @@ package com.example.spotify.service.musicsLoaderService
 
 import android.app.Service
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.repository.dataRepository.SpotifyDataRepository
-import com.example.spotify.util.TAG
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,36 +31,23 @@ class MusicLoaderService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-
-//        when (intent?.action) {
-//            Actions.START.toString() -> start()
-//            Actions.STOP.toString() -> stopSelf()
-//        }
-
         start()
-
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-
     private fun start() {
-//        NotificationCompat.Builder(this, "media_store_loader_channel")
-//            .setSmallIcon(R.drawable.ic_launcher_foreground)
-//            .setContentTitle("Loader is active")
-//            .setContentText("Elapsed time: 00:50")
-//            .build()
-//        // startForeground(1, notification)
-        Log.d(TAG, "start: ")
         loadFiles()
     }
 
     private fun loadFiles() = serviceScope.launch(Dispatchers.Default) {
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
             MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.DATA
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.ALBUM_ID
         )
 
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -81,25 +66,34 @@ class MusicLoaderService : Service() {
             val musicFiles = mutableListOf<MusicFile>()
             cursor?.use {
                 val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+                val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                val artistColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val filePathColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                val albumIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+
 
                 while (it.moveToNext()) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn)
+                        ?.replace(Regex("\\(.*?\\)"), "") // убрать (Lyrics)
+                        ?.replace(Regex("\\[.*?\\]"), "")
+                        ?.trim()
+
+                    val artist = it.getString(artistColumn)
                     val duration = it.getLong(durationColumn)
                     val filePath = it.getString(filePathColumn)
+                    val albumId = it.getLong(albumIdColumn)
 
-                    musicFiles.add(MusicFile(id, name, duration, filePath))
+
+                    musicFiles.add(MusicFile(id, name, artist, duration, filePath, albumId))
                 }
 
-
                 dataRepository.insert(musicFiles)
+//                Log.d("MusicLoaderService", "Music files loaded: $musicFiles")
             }
         }
     }
-
 
     enum class Actions {
         START,

@@ -2,7 +2,12 @@ package com.example.spotify.service.playerService
 
 import android.app.NotificationManager
 import android.app.Service
+import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 
 import android.os.Binder
 import android.os.IBinder
@@ -114,6 +119,8 @@ class PlayerService: Service() {
 
     private fun updateNotification(state: PlayerState) {
 
+        val bitmap = getAlbumArtBitmap(this, state.selectedMusic?.albumId)
+
         val playIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
             this,
             PlaybackStateCompat.ACTION_PLAY_PAUSE
@@ -132,6 +139,8 @@ class PlayerService: Service() {
         val notification = NotificationCompat.Builder(this, "player_channel")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(state.selectedMusic?.name ?: "No track")
+            .setContentText(state.selectedMusic?.artist ?: "No artist")
+            .setLargeIcon( bitmap )
             .addAction(R.drawable.skip_previous_24dp, "Prev", prevIntent)
             .addAction(
                 if (state.isPlaying) R.drawable.pause_circle_24dp else R.drawable.play_circle_24dp,
@@ -222,6 +231,25 @@ class PlayerService: Service() {
         RUN,
         NEXT,
         PREVIOUS
+    }
+
+    fun getAlbumArtUri(albumId: Long): Uri {
+        return ContentUris.withAppendedId(
+            Uri.parse("content://media/external/audio/albumart"),
+            albumId
+        )
+    }
+
+    fun getAlbumArtBitmap(context: Context, albumId: Long?): Bitmap? {
+        if (albumId == null) return null
+
+        return try {
+            val uri = getAlbumArtUri(albumId)
+            val inputStream = context.contentResolver.openInputStream(uri)
+            BitmapFactory.decodeStream(inputStream)
+        } catch (e: Exception) {
+            null
+        }
     }
 
 
