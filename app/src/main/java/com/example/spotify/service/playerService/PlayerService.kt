@@ -140,14 +140,14 @@ class PlayerService: Service() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(state.selectedMusic?.name ?: "No track")
             .setContentText(state.selectedMusic?.artist ?: "No artist")
-            .setLargeIcon( bitmap ?: BitmapFactory.decodeResource(resources, R.drawable.music_note_24dp))
-            .addAction(R.drawable.skip_previous_24dp, "Prev", prevIntent)
+            .setLargeIcon( bitmap ?: BitmapFactory.decodeResource(resources, R.drawable.outline_music_note_24))
+            .addAction(R.drawable.outline_skip_previous_24, "Prev", prevIntent)
             .addAction(
-                if (state.isPlaying) R.drawable.pause_circle_24dp else R.drawable.play_circle_24dp,
+                if (state.isPlaying) R.drawable.outline_pause_circle_24 else R.drawable.outline_play_circle_24,
                 "Play",
                 playIntent
             )
-            .addAction(R.drawable.skip_next_24dp, "Next", nextIntent)
+            .addAction(R.drawable.outline_skip_next_24, "Next", nextIntent)
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(mediaSession.sessionToken)

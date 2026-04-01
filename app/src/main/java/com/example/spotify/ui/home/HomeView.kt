@@ -26,6 +26,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PauseCircle
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -280,7 +285,7 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
-                painter = painterResource(id = R.drawable.skip_previous_24dp),
+                imageVector = Icons.Rounded.SkipPrevious,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -297,7 +302,7 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
-                painter = painterResource(id = if (!state.isPlaying) R.drawable.play_circle_24dp else R.drawable.pause_circle_24dp),
+                imageVector =  if (!state.isPlaying) Icons.Rounded.PlayCircle else Icons.Rounded.PauseCircle,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -314,7 +319,7 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
-                painter = painterResource(id = R.drawable.skip_next_24dp),
+                imageVector = Icons.Rounded.SkipNext,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
