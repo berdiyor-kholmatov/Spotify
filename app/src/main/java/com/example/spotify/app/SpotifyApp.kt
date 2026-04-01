@@ -19,7 +19,10 @@ class SpotifyApp: Application() {
                 "player_channel",
                 "Running Notifications",
                 NotificationManager.IMPORTANCE_LOW
-            )
+            ).apply {
+                setSound(null, null) // отключаем звук
+                enableVibration(false) // отключаем вибрацию
+            }
 
             val mediaStoreLoaderChannel = NotificationChannel(
                 "media_store_loader_channel",

@@ -82,7 +82,8 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
                 if (state.selectedMusic != null) {
                     MiniPlayer(context, state, onEvent)
                 }
-            }
+            },
+
         ) { padding ->
             LazyColumn(modifier = Modifier.systemBarsPadding()) {
                 items(state.musics) { music ->
