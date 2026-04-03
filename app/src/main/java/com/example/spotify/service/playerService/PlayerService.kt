@@ -13,10 +13,12 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.compose.ui.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.palette.graphics.Palette
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.player.PlayerManager
@@ -211,9 +213,12 @@ class PlayerService: Service() {
 
         val music = playerState.value.musics[index]
 
+        // Compute color for the track we are about to play, not the previously selected one
+        val bitmap = getAlbumArtBitmap(this, music.albumId)
+
         play(music)
 
-        playerManager.start(music)
+        playerManager.start(music, darken(bitmap?.let { extractDominantColor(it)} ?: Color.Gray))
     }
 
     fun play(music: MusicFile) { //yep, i have to change receiving url to uri, and actually i have to change it to the Music file as it can be confusing having any uri instead of music uri
@@ -252,6 +257,24 @@ class PlayerService: Service() {
         }
     }
 
+    fun extractDominantColor(bitmap: Bitmap): Color {
+        val palette = Palette.from(bitmap).generate()
+
+        val color = palette.getDominantColor(android.graphics.Color.GRAY)
+
+        return Color(color)
+    }
+
+    fun darken(color: Color, factor: Float = 0.7f): Color {
+        return Color(
+            red = color.red * factor,
+            green = color.green * factor,
+            blue = color.blue * factor,
+            alpha = 1f
+        )
+    }
+
+
 
     override fun onDestroy() {
         serviceScope.cancel()
@@ -259,4 +282,3 @@ class PlayerService: Service() {
         super.onDestroy()
     }
 }
-

@@ -1,5 +1,6 @@
 package com.example.spotify.ui.home
 
+import androidx.compose.ui.graphics.Color
 import com.example.spotify.domain.model.MusicFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -9,6 +10,7 @@ data class HomeViewState(
     val selectedMusic: MusicFile? = null,
     val isPlaying: Boolean = false,
     val playbackMode: PlaybackMode = PlaybackMode.LOOP,
+    val dominantColor: Color = Color.Gray
 )
 
 enum class PlaybackMode {

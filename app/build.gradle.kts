@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.palette.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -85,4 +86,11 @@ dependencies {
 
     //Material icons extended
     implementation("androidx.compose.material:material-icons-extended")
+
+    //Material3
+    implementation("androidx.navigation3:navigation3-runtime:1.1.0-rc01")
+    implementation("androidx.navigation3:navigation3-ui:1.1.0-rc01")
+
+
+
 }

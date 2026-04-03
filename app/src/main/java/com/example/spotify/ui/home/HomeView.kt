@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +25,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LibraryMusic
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.SkipNext
@@ -34,29 +38,38 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
-import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.service.playerService.PlayerService
-//import com.example.spotify.ui.component.permission.PermissionRequired
-//import com.example.spotify.ui.component.permission.rememberPermissionState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
+
+
+data class BottomNavigationItem (
+    val title: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+    )
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -81,11 +94,87 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
             onEvent(HomeViewEvents.PermissionGranted)
         }
 
+        val items = listOf(
+            BottomNavigationItem (
+                title = "Home",
+                selectedIcon = Icons.Filled.Home,
+                unselectedIcon = Icons.Outlined.Home
+            ),
+            BottomNavigationItem (
+                title = "Search",
+                selectedIcon = Icons.Filled.Search,
+                unselectedIcon = Icons.Outlined.Search
+            ),
+            BottomNavigationItem (
+                title = "Library",
+                selectedIcon = Icons.Filled.LibraryMusic,
+                unselectedIcon = Icons.Outlined.LibraryMusic
+            )
+        )
+
+        var selectedItemIndex = rememberSaveable {
+                mutableStateOf(0)
+        }
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
-                if (state.selectedMusic != null) {
-                    MiniPlayer(context, state, onEvent)
+
+                Column {
+                    if (state.selectedMusic != null) {
+                        MiniPlayer(context, state, onEvent)
+                    }
+
+                    Box (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ){
+                        // 👇 ВОТ ОН fade
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                                .align(Alignment.TopCenter)
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Black.copy(alpha = 0.5f),
+                                            Color.Black.copy(alpha = 1f)
+                                        )
+                                    )
+                                )
+                        )
+
+                        NavigationBar(
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                            containerColor = Color.Transparent, // 🔥 ВАЖНО
+                            tonalElevation = 0.dp, // убирает тень/overlay
+                        ) {
+                            items.forEachIndexed { index, item ->
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = {
+                                        selectedItemIndex.value = index
+//                                    navController.navigate(item.title)
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector =
+                                                if (index == selectedItemIndex.value)
+                                                    item.selectedIcon
+                                                else
+                                                    item.unselectedIcon,
+                                            contentDescription = item.title,
+                                            tint = if ( index == selectedItemIndex.value ) Color.White else Color.Gray
+                                        )
+                                    },
+                                    label = {
+                                        Text(text = item.title, color = if ( index == selectedItemIndex.value ) Color.White else  Color.Gray)
+                                    },
+                                )
+                            }
+                        }
+                    }
                 }
             },
 
@@ -148,8 +237,8 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
                     Box(modifier = Modifier
                         .padding(10.dp)
                         .fillMaxWidth()
-                        .height(50.dp))
-
+                        .height(if ( state.selectedMusic != null ) 130.dp else 60.dp )
+                    )
                 }
             }
         }
@@ -232,10 +321,11 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
 
     Row(
         modifier = Modifier
-            .padding(8.dp)
-            .systemBarsPadding()
+            .padding(start = 8.dp, end = 8.dp)
+            .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .background(state.dominantColor)
+            .clickable { },
         verticalAlignment =  Alignment.CenterVertically
     ) {
 
@@ -262,8 +352,8 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
             Text(
                 state.selectedMusic?.name ?: "null",
                 style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
                 maxLines = 1,
-//                modifier = Modifier.offset(y = (-4).dp)
             )
             Text(
                 state.selectedMusic?.artist ?: "null",
@@ -284,10 +374,10 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
             }
         ) {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(30.dp),
                 imageVector = Icons.Rounded.SkipPrevious,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = Color.White,
             )
         }
 
@@ -301,10 +391,10 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
             }
         ) {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(30.dp),
                 imageVector =  if (!state.isPlaying) Icons.Rounded.PlayCircle else Icons.Rounded.PauseCircle,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = Color.White,
             )
         }
 
@@ -318,10 +408,10 @@ fun MiniPlayer(context: Context, state: HomeViewState, onEvent: (HomeViewEvents)
             }
         ) {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(30.dp),
                 imageVector = Icons.Rounded.SkipNext,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = Color.White,
             )
         }
     }

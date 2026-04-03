@@ -1,8 +1,18 @@
 package com.example.spotify.player
 
+import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
+//import android.graphics.Color
+import android.net.Uri
+import androidx.compose.ui.graphics.Color
 import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.palette.graphics.Palette
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.repository.dataRepository.SpotifyDataRepository
@@ -48,7 +58,11 @@ class PlayerManager @Inject constructor(
         _playerState.value = _playerState.value.copy(isPlaying = !_playerState.value.isPlaying)
     }
 
-    fun start(music: MusicFile) {
-        _playerState.value = _playerState.value.copy(isPlaying = true, selectedMusic = music)
+    fun start(music: MusicFile, color: Color) {
+        _playerState.value = _playerState.value.copy(isPlaying = true, selectedMusic = music, dominantColor = color)
     }
+
+
+
+
 }

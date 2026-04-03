@@ -30,7 +30,8 @@ class HomeViewModel @Inject constructor(
                     isPlaying = it.isPlaying,
                     selectedMusic = it.selectedMusic,
                     musics = it.musics,
-                    playbackMode = it.playbackMode
+                    playbackMode = it.playbackMode,
+                    dominantColor = it.dominantColor
                 )
             }
         }
@@ -44,6 +45,7 @@ class HomeViewModel @Inject constructor(
     fun onEvent(event: HomeViewEvents) {
         when(event) {
             is HomeViewEvents.OnMusicSelected -> {
+
             }
 
             HomeViewEvents.OnPlayPauseClicked -> {
