@@ -1,5 +1,6 @@
 package com.example.spotify.ui.navigation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,6 +30,7 @@ data object Library
 
 @Composable
 fun NavigationDisplay(
+    context: Context,
     backStack: MutableList<Any> = remember { mutableStateListOf(Home) }
 ) {
     NavDisplay(
@@ -46,6 +48,7 @@ fun NavigationDisplay(
                     val musicPlayerViewModel: MusicPlayerViewModel = hiltViewModel()
                     val state by musicPlayerViewModel.state.collectAsState()
                     MusicPlayerView(
+                        context = context ,
                         state = state,
                         onEvent = musicPlayerViewModel::onEvent,
                     )

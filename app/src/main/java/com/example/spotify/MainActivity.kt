@@ -9,13 +9,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.spotify.player.PlayerManager
+import com.example.spotify.player.PlayerManagerViewModel
+import com.example.spotify.player.PlayerState
 import com.example.spotify.service.musicsLoaderService.MusicLoaderService
 import com.example.spotify.ui.home.HomeView
 import com.example.spotify.ui.theme.SpotifyTheme
 import com.example.spotify.ui.home.HomeViewModel
+import com.example.spotify.ui.mainView.MainView
+import com.example.spotify.ui.musicPlayer.MusicPlayerViewModel
 import com.example.spotify.util.TAG
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -29,9 +36,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SpotifyTheme {
-                val homeViewModel = hiltViewModel<HomeViewModel>()
-                val state by homeViewModel.state.collectAsState()//collectAsStateWithLifecycle()
-                HomeView(state, homeViewModel::onEvent)
+                val playerManagerViewModel: PlayerManagerViewModel = hiltViewModel()
+                val playerState by playerManagerViewModel.state.collectAsState()
+                MainView(LocalContext.current, playerState)
             }
         }
     }

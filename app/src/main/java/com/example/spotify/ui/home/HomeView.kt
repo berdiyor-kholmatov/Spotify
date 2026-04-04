@@ -94,154 +94,69 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
             onEvent(HomeViewEvents.PermissionGranted)
         }
 
-        val items = listOf(
-            BottomNavigationItem (
-                title = "Home",
-                selectedIcon = Icons.Filled.Home,
-                unselectedIcon = Icons.Outlined.Home
-            ),
-            BottomNavigationItem (
-                title = "Search",
-                selectedIcon = Icons.Filled.Search,
-                unselectedIcon = Icons.Outlined.Search
-            ),
-            BottomNavigationItem (
-                title = "Library",
-                selectedIcon = Icons.Filled.LibraryMusic,
-                unselectedIcon = Icons.Outlined.LibraryMusic
-            )
-        )
+        LazyColumn(modifier = Modifier.systemBarsPadding()) {
+            items(state.musics) { music ->
 
-        var selectedItemIndex = rememberSaveable {
-                mutableStateOf(0)
-        }
-
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-
-                Column {
-                    if (state.selectedMusic != null) {
-                        MiniPlayer(context, state, onEvent)
-                    }
-
-                    Box (
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ){
-                        // 👇 ВОТ ОН fade
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(80.dp)
-                                .align(Alignment.TopCenter)
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.Black.copy(alpha = 0.5f),
-                                            Color.Black.copy(alpha = 1f)
-                                        )
-                                    )
-                                )
-                        )
-
-                        NavigationBar(
-                            modifier = Modifier.align(Alignment.BottomCenter),
-                            containerColor = Color.Transparent, // 🔥 ВАЖНО
-                            tonalElevation = 0.dp, // убирает тень/overlay
-                        ) {
-                            items.forEachIndexed { index, item ->
-                                NavigationBarItem(
-                                    selected = false,
-                                    onClick = {
-                                        selectedItemIndex.value = index
-//                                    navController.navigate(item.title)
-                                    },
-                                    icon = {
-                                        Icon(
-                                            imageVector =
-                                                if (index == selectedItemIndex.value)
-                                                    item.selectedIcon
-                                                else
-                                                    item.unselectedIcon,
-                                            contentDescription = item.title,
-                                            tint = if ( index == selectedItemIndex.value ) Color.White else Color.Gray
-                                        )
-                                    },
-                                    label = {
-                                        Text(text = item.title, color = if ( index == selectedItemIndex.value ) Color.White else  Color.Gray)
-                                    },
-                                )
+                Row (
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp,vertical = 8.dp)
+                        .clickable {
+                            onEvent(HomeViewEvents.OnMusicSelected(music))
+                            Intent(context, PlayerService::class.java).also {
+                                it.action = PlayerService.Actions.START.toString()
+                                it.putExtra("URI", music.filePath)
+                                ContextCompat.startForegroundService(context, it)
                             }
                         }
-                    }
-                }
-            },
-
-        ) { padding ->
-            LazyColumn(modifier = Modifier.systemBarsPadding()) {
-                items(state.musics) { music ->
-
-                    Row (
+                ) {
+                    AsyncImage(
+                        model = getAlbumArtUri(music.albumId ?: 0),
+                        contentDescription = null,
                         modifier = Modifier
-                            .padding(horizontal = 12.dp,vertical = 8.dp)
-                            .clickable {
-                                onEvent(HomeViewEvents.OnMusicSelected(music))
-                                Intent(context, PlayerService::class.java).also {
-                                    it.action = PlayerService.Actions.START.toString()
-                                    it.putExtra("URI", music.filePath)
-                                    ContextCompat.startForegroundService(context, it)
-                                }
-                            }
-                    ) {
-                        AsyncImage(
-                            model = getAlbumArtUri(music.albumId ?: 0),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .width(50.dp)
-                                .height(50.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(MaterialTheme.colorScheme.error)
+                            .width(50.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(MaterialTheme.colorScheme.error)
 
-                            ,
-                            contentScale = ContentScale.Crop
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        //MusicCell(music)
-                        Column ( modifier = Modifier
-                            .height(56.dp)
-                            .weight(1f)
-                            .padding(4.dp)
-                            .fillMaxWidth(),
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                music.name ?: "null",
-                                style = MaterialTheme.typography.bodyLarge,
-                                maxLines = 1,
-                                modifier = Modifier.offset(y = (-4).dp)
-                            )
-                            Text(
-                                music.artist ?: "null",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
-
-                items(1){
-                    Box(modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                        .height(if ( state.selectedMusic != null ) 130.dp else 60.dp )
+                        ,
+                        contentScale = ContentScale.Crop
                     )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    //MusicCell(music)
+                    Column ( modifier = Modifier
+                        .height(56.dp)
+                        .weight(1f)
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            music.name ?: "null",
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            modifier = Modifier.offset(y = (-4).dp)
+                        )
+                        Text(
+                            music.artist ?: "null",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
+
+            items(1){
+                Box(modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .height(if ( state.selectedMusic != null ) 130.dp else 60.dp )
+                )
+            }
         }
+
     }
 /*
 //    PermissionRequired(
