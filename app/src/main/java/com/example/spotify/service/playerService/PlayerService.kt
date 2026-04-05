@@ -13,6 +13,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
@@ -27,10 +28,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class PlayerService: Service() {
@@ -46,7 +52,7 @@ class PlayerService: Service() {
     val playerState: StateFlow<PlayerState>
         get() = playerManager.playerState
 
-
+    private var progressJob: Job? = null
 
 
     private val binder by lazy { PlayerBinder() }
@@ -181,14 +187,27 @@ class PlayerService: Service() {
             Actions.RUN.toString() -> playPause()
             Actions.NEXT.toString() -> next()
             Actions.PREVIOUS.toString() -> previous()
+            Actions.SEEK.toString() -> seekTo(intent.getLongExtra("POSITION", 0))
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private fun seekTo(position: Long) {
+        player.seekTo(position)
+    }
+
     private fun playPause(){
         playerManager.playPause()
-        if (playerState.value.isPlaying) player.play() else player.pause()
+        if (playerState.value.isPlaying) {
+            player.play()
+            startTrackingProgress()
+        }
+        else {
+            player.pause()
+            stopTrackingProgress()
+        }
+
     }
     private fun next() {
         val index = playerState.value.musics.indexOfFirst { it.id == playerState.value.selectedMusic?.id }
@@ -217,8 +236,8 @@ class PlayerService: Service() {
         val bitmap = getAlbumArtBitmap(this, music.albumId)
 
         play(music)
-
         playerManager.start(music, darken(bitmap?.let { extractDominantColor(it)} ?: Color.Gray))
+        startTrackingProgress()
     }
 
     fun play(music: MusicFile) { //yep, i have to change receiving url to uri, and actually i have to change it to the Music file as it can be confusing having any uri instead of music uri
@@ -235,8 +254,32 @@ class PlayerService: Service() {
         PAUSE,
         RUN,
         NEXT,
-        PREVIOUS
+        PREVIOUS,
+        SEEK
     }
+
+    fun startTrackingProgress() {
+        progressJob?.cancel()
+
+        progressJob = serviceScope.launch {
+            // ExoPlayer требует обращения с того же looper'а, что и был создан (обычно main).
+            withContext(Dispatchers.Main.immediate) {
+                //(playerState.value.selectedMusic?.duration ?: 0) >= player.currentPosition) it have to be checked because it won't stop without it
+                while (isActive && (playerState.value.selectedMusic?.duration ?: 0) >= player.currentPosition) {
+                    Log.d("PlayerService", "Tracking progress ${player.currentPosition}, ${playerState.value.selectedMusic?.duration}")
+                    val currentPosition = player.currentPosition
+                    playerManager.updatePosition(currentPosition)
+                    delay(1000)
+                }
+            }
+        }
+
+    }
+
+    fun stopTrackingProgress() {
+        progressJob?.cancel()
+    }
+
 
     fun getAlbumArtUri(albumId: Long): Uri {
         return ContentUris.withAppendedId(

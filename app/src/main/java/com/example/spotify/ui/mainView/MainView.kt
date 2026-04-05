@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -124,7 +126,7 @@ fun MainView(
                                                 else
                                                     item.unselectedIcon,
                                             contentDescription = item.title,
-                                            tint = if ( index == selectedItemIndex.value ) Color.White else Color.Gray
+                                            tint = if ( index == selectedItemIndex.value ) Color.White else Color.Gray,
                                         )
                                     },
                                     label = {

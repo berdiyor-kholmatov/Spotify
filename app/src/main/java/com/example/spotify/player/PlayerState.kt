@@ -9,5 +9,6 @@ data class PlayerState(
     val isPlaying: Boolean = false,
     val selectedMusic: MusicFile? = null,
     val playbackMode: PlaybackMode = PlaybackMode.LOOP,
-    val dominantColor: Color = Color.Gray
+    val dominantColor: Color = Color.Gray,
+    val currentPosition: Long = 0
 )

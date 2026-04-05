@@ -25,7 +25,8 @@ class MusicPlayerViewModel @Inject constructor(
                     isPlaying = it.isPlaying,
                     selectedMusic = it.selectedMusic,
                     playbackMode = it.playbackMode,
-                    dominantColor = it.dominantColor
+                    dominantColor = it.dominantColor,
+                    currentPosition = it.currentPosition
                 )
             }
         }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -25,12 +24,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LibraryMusic
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.SkipNext
@@ -38,21 +31,13 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -64,12 +49,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 
-
-data class BottomNavigationItem (
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    )
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -158,75 +137,6 @@ fun HomeView(state: HomeViewState, onEvent: (HomeViewEvents) -> Unit){
         }
 
     }
-/*
-//    PermissionRequired(
-//        permissionState = mediaPermissionState,
-//        notGrantedContent = {
-//            // User hali ruxsat ham bermagan rad ham etmagan
-//            // Bu yerda musiqa playeri uchun permission kerak degan UI qilish kerak
-//            // Ruxsat berish degan tugma qo'shish kerak
-//            Column(modifier = Modifier.systemBarsPadding()){
-//                Text("Need permission to access music")
-//                Button(
-//                    onClick = { mediaPermissionState.launchPermissionRequest() }
-//                ) {
-//                    Text("Grand access")
-//                }
-//            }
-//        },
-//        deniedContent = {
-//            // Bu yerda user permission rad etgan
-//            // Bu yerda Iltimos settingga o'tib permission bering deb yozish kerak
-//            // Settingga o'tish degan tugma turadi
-//            Column(modifier = Modifier.systemBarsPadding()){
-//                Text("Permissions rejected, try again")
-//                Button(
-//                    onClick = { mediaPermissionState.launchPermissionRequest() }
-//                ) {
-//                    Text("Retry")
-//                }
-//            }
-//        },
-//        grantedContent = {
-//            // Bu Yerda permission bor bo'lsa ishlaydi
-//            LaunchedEffect("true") {
-//                onEvent(HomeViewEvents.PermissionGranted)
-//            }
-//
-//            Scaffold(
-//                modifier = Modifier.fillMaxSize(),
-//                bottomBar = {
-//                    if (state.selectedMusic != null) {
-//                        MiniPlayer(state, onEvent)
-//                    }
-//                }
-//            ) { padding ->
-//                LazyColumn(modifier = Modifier.systemBarsPadding()) {
-//                    items(state.musics) { music ->
-//                        TextButton(
-//                            onClick = { onEvent(HomeViewEvents.OnMusicSelected( music)) },
-//                            content = { MusicCell(music) },
-//                            modifier = Modifier.fillMaxWidth()
-//                                .background(MaterialTheme.colorScheme.secondaryContainer)
-//                        )
-//
-//                        Spacer(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .height(1.dp)
-//                                .padding(horizontal = 6.dp)
-//                                .background(
-//                                    MaterialTheme.colorScheme.onSecondaryContainer.copy(
-//                                        alpha = 0.8f
-//                                    )
-//                                )
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    )
-    */
 }
 
 

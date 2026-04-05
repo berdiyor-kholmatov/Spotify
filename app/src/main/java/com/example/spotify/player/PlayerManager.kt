@@ -19,7 +19,9 @@ import com.example.spotify.repository.dataRepository.SpotifyDataRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,9 +62,14 @@ class PlayerManager @Inject constructor(
 
     fun start(music: MusicFile, color: Color) {
         _playerState.value = _playerState.value.copy(isPlaying = true, selectedMusic = music, dominantColor = color)
+
     }
 
-
-
-
+    fun updatePosition(position: Long) {
+        _playerState.update {
+            it.copy(
+                currentPosition = position
+            )
+        }
+    }
 }
