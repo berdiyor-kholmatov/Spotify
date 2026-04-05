@@ -1,5 +1,10 @@
 package com.example.spotify.ui.search
 
+import android.content.ContentUris
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,11 +40,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.palette.graphics.Palette
+import coil.compose.AsyncImage
+import com.example.spotify.ui.home.getAlbumArtUri
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,25 +111,79 @@ fun SearchView(state: SearchViewState, onEvent: (SearchViewEvents) -> Unit) {
                     .padding(11.dp)
                     .background(Color.Black),
                 content = {
+
+
+
                     stickyHeader {
                         SearchBarButton( modifier = Modifier.padding(horizontal = 6.dp), onClick = { /*TODO*/ })
                     }
 
-                    items(100) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .padding(6.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color.Gray),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(
-                                "item $it",
-                            )
+                    val grouped = state.musics.groupBy { it.artist }
+
+//                    grouped.forEach { (artist, items) ->
+
+                        items(grouped.size) { index ->
+                            val bitmap = getAlbumArtBitmap(LocalContext.current, grouped[grouped.keys.elementAt(index).toString()]?.first()?.albumId)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(115.dp)
+                                    .padding(6.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(darken(bitmap?.let { extractDominantColor(it)} ?: Color.Gray))
+                                    .clickable(
+                                        onClick = { /*TODO*/ }
+                                    )
+
+                            ){
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.TopStart
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.5f)
+                                            .padding(10.dp)
+                                    ){
+                                        Text(
+                                            grouped.keys.elementAt(index).toString(),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.BottomEnd
+                                ){
+                                    AsyncImage(
+                                        model = getAlbumArtUri(grouped[grouped.keys.elementAt(index).toString()]?.first()?.albumId ?: 0),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .width(80.dp)
+                                            .aspectRatio(1f)
+                                            .rotate(15f)
+                                            .padding(5.dp)
+                                            .clip(RoundedCornerShape(3.dp))
+                                            .background(MaterialTheme.colorScheme.error)
+
+                                        ,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+
+                            }
                         }
-                    }
+
+
+
+
+
+
                 }
             )
         }
@@ -162,4 +227,41 @@ fun SearchBarButton( modifier: Modifier, onClick: () -> Unit) {
         }
     }
 
+}
+
+
+fun getAlbumArtUri(albumId: Long): Uri {
+    return ContentUris.withAppendedId(
+        Uri.parse("content://media/external/audio/albumart"),
+        albumId
+    )
+}
+
+fun getAlbumArtBitmap(context: Context, albumId: Long?): Bitmap? {
+    if (albumId == null) return null
+
+    return try {
+        val uri = getAlbumArtUri(albumId)
+        val inputStream = context.contentResolver.openInputStream(uri)
+        BitmapFactory.decodeStream(inputStream)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+fun extractDominantColor(bitmap: Bitmap): Color {
+    val palette = Palette.from(bitmap).generate()
+
+    val color = palette.getDominantColor(android.graphics.Color.GRAY)
+
+    return Color(color)
+}
+
+fun darken(color: Color, factor: Float = 0.7f): Color {
+    return Color(
+        red = color.red * factor,
+        green = color.green * factor,
+        blue = color.blue * factor,
+        alpha = 1f
+    )
 }
