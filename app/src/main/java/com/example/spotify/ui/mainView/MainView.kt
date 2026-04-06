@@ -141,6 +141,7 @@ fun MainView(
         },
 
     ) { contentPadding ->
+        contentPadding
         NavigationDisplay ( context, backStack )
     }
 
