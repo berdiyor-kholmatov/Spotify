@@ -22,7 +22,8 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             playerState.collect {
                 _state.value = _state.value.copy(
-                    musics = it.musics
+                    musics = it.musics,
+                    selectedMusic = it.selectedMusic,
                 )
             }
         }
