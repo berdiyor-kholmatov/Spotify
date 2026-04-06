@@ -28,6 +28,12 @@ class SearchViewModel @Inject constructor(
         }
     }
     fun onEvent(event: SearchViewEvents) {
-
+        when(event){
+            is SearchViewEvents.SearchingFieldChanged -> {
+                _state.value = _state.value.copy(
+                    filteredMusics = _state.value.musics.filter { it.name?.contains(event.query, ignoreCase = true) == true }
+                )
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.example.spotify.ui.search
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -9,14 +10,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -34,9 +38,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,8 +57,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
+import com.example.spotify.service.playerService.PlayerService
+import com.example.spotify.ui.home.HomeViewEvents
 import com.example.spotify.ui.home.getAlbumArtUri
 
 
@@ -99,97 +111,177 @@ fun SearchView(state: SearchViewState, onEvent: (SearchViewEvents) -> Unit) {
             )
         }
     ) { paddingValues ->
+
+        val context = LocalContext.current
         Box (modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
             .background(Color.Black)
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(11.dp)
-                    .background(Color.Black),
-                content = {
 
+            Column() {
+                SimpleSearchBar(context, state, onEvent)
 
+                LazyColumn(modifier = Modifier.systemBarsPadding()) {
 
-                    stickyHeader {
-                        SearchBarButton( modifier = Modifier.padding(horizontal = 6.dp), onClick = { /*TODO*/ })
-                    }
+                    items(state.filteredMusics) { music ->
 
-                    val grouped = state.musics.groupBy { it.artist }
-
-//                    grouped.forEach { (artist, items) ->
-
-                        items(grouped.size) { index ->
-                            val bitmap = getAlbumArtBitmap(LocalContext.current, grouped[grouped.keys.elementAt(index).toString()]?.first()?.albumId)
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(115.dp)
-                                    .padding(6.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(darken(bitmap?.let { extractDominantColor(it)} ?: Color.Gray))
-                                    .clickable(
-                                        onClick = { /*TODO*/ }
-                                    )
-
-                            ){
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    contentAlignment = Alignment.TopStart
-                                ){
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.5f)
-                                            .padding(10.dp)
-                                    ){
-                                        Text(
-                                            grouped.keys.elementAt(index).toString(),
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp,
-                                            color = Color.White
-                                        )
+                        Row (
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp,vertical = 8.dp)
+                                .clickable {
+                                    Intent( context , PlayerService::class.java).also {
+                                        it.action = PlayerService.Actions.START.toString()
+                                        it.putExtra("URI", music.filePath)
+                                        ContextCompat.startForegroundService(context, it)
                                     }
                                 }
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    contentAlignment = Alignment.BottomEnd
-                                ){
-                                    AsyncImage(
-                                        model = getAlbumArtUri(grouped[grouped.keys.elementAt(index).toString()]?.first()?.albumId ?: 0),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .width(80.dp)
-                                            .aspectRatio(1f)
-                                            .rotate(15f)
-                                            .padding(5.dp)
-                                            .clip(RoundedCornerShape(3.dp))
-                                            .background(MaterialTheme.colorScheme.error)
+                        ) {
+                            AsyncImage(
+                                model = getAlbumArtUri(music.albumId ?: 0),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(50.dp)
+                                    .height(50.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(MaterialTheme.colorScheme.error)
 
-                                        ,
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
+                                ,
+                                contentScale = ContentScale.Crop
+                            )
 
+                            Spacer(modifier = Modifier.width(8.dp))
 
+                            Column ( modifier = Modifier
+                                .height(56.dp)
+                                .weight(1f)
+                                .padding(4.dp)
+                                .fillMaxWidth(),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    music.name ?: "null",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    maxLines = 1,
+                                    modifier = Modifier.offset(y = (-4).dp)
+                                )
+                                Text(
+                                    music.artist ?: "null",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
                             }
                         }
+                    }
 
-
-
-
-
+                    items(1){
+                        Box(modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                            .height(if ( state.selectedMusic != null ) 130.dp else 60.dp )
+                        )
+                    }
 
                 }
-            )
+            }
+
+
         }
 
     }
 }
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SimpleSearchBar(context: Context, state: SearchViewState, onEvent: (SearchViewEvents) -> Unit) {
+    var query by remember { mutableStateOf("") }
+    var active by remember { mutableStateOf(false) }
+
+    SearchBar(
+        query = query,
+        onQueryChange = { query = it },
+        onSearch = {
+            println("Search: $it")
+            active = false
+        },
+        active = active,
+        onActiveChange = { active = it },
+        placeholder = { Text("Search...") },
+        colors = SearchBarDefaults.colors(
+            containerColor = Color.Black, // фон search bar
+        )
+    ) {
+        LazyColumn(modifier = Modifier.systemBarsPadding()) {
+
+            onEvent(SearchViewEvents.SearchingFieldChanged(query))
+
+            items(state.filteredMusics) { music ->
+
+                Row (
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp,vertical = 8.dp)
+                        .clickable {
+                            Intent( context , PlayerService::class.java).also {
+                                it.action = PlayerService.Actions.START.toString()
+                                it.putExtra("URI", music.filePath)
+                                ContextCompat.startForegroundService(context, it)
+                            }
+                        }
+                ) {
+                    AsyncImage(
+                        model = getAlbumArtUri(music.albumId ?: 0),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(MaterialTheme.colorScheme.error)
+
+                        ,
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column ( modifier = Modifier
+                        .height(56.dp)
+                        .weight(1f)
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            music.name ?: "null",
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            modifier = Modifier.offset(y = (-4).dp)
+                        )
+                        Text(
+                            music.artist ?: "null",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
+            items(1){
+                Box(modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .height(if ( state.selectedMusic != null ) 130.dp else 60.dp )
+                )
+            }
+
+
+        }
+    }
+}
+
 
 
 @Composable
