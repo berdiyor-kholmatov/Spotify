@@ -1,4 +1,4 @@
-package com.example.spotify.ui.search
+package com.example.spotify.ui.search.artistRelatedPage
 
 import com.example.spotify.domain.model.MusicFile
 

@@ -1,4 +1,4 @@
-package com.example.spotify.ui.mainView
+package com.example.spotify.ui.mainView.mainView
 
 import android.content.Context
 import android.content.Intent
@@ -24,7 +24,6 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -41,7 +41,9 @@ import com.example.spotify.service.playerService.PlayerService
 import com.example.spotify.ui.home.getAlbumArtUri
 
 @Composable
-fun MiniPlayer(context: Context, state: PlayerState, onClick: () -> Unit) {
+fun MiniPlayer(state: MainViewState, onClick: () -> Unit) {
+
+    val context = LocalContext.current
 
     Box ( ) {
         Row(

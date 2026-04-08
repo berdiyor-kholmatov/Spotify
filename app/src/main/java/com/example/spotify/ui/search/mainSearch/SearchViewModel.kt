@@ -1,4 +1,4 @@
-package com.example.spotify.ui.search
+package com.example.spotify.ui.search.mainSearch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

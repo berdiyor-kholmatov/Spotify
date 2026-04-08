@@ -1,4 +1,4 @@
-package com.example.spotify.ui.mainView
+package com.example.spotify.ui.mainView.mainView
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

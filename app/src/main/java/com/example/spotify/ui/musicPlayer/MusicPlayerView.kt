@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,29 +49,23 @@ import com.example.spotify.service.playerService.PlayerService
 import com.example.spotify.ui.home.getAlbumArtUri
 
 @Composable
-fun MusicPlayerView(context: Context, state: MusicPlayerViewState, onEvent: (MusicPlayerViewEvents) -> Unit) {
+fun MusicPlayerView(state: MusicPlayerViewState, onEvent: (MusicPlayerViewEvents) -> Unit) {
+
+    val context = LocalContext.current
 
     Box (
         modifier = Modifier
-            .systemBarsPadding()
-    ) {
-
-        // implementation of the spotify like fade
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.TopCenter)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            state.dominantColor.copy(alpha = 1f),
-                            Color.Black.copy(alpha = 1f)
-                        )
+            .fillMaxSize()
+            //.align(Alignment.TopCenter)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        state.dominantColor.copy(alpha = 1f),
+                        Color.Black.copy(alpha = 1f)
                     )
                 )
-        )
-
-
+            )
+    ) {
         Column (
             modifier = Modifier
                 .fillMaxWidth()
@@ -235,10 +230,7 @@ fun MusicPlayerView(context: Context, state: MusicPlayerViewState, onEvent: (Mus
                     )
                 }
             }
-
-
         }
-
     }
 }
 
