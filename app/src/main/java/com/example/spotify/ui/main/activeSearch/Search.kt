@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.ArrowBack
 import androidx.compose.material.icons.rounded.AddCircle
+import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -150,10 +151,10 @@ fun Search(state: SearchState, onEvent: (SearchEvents) -> Unit, onBack: () -> Un
                         onClick = { onEvent(SearchEvents.OnFavoriteToggle(music)) }
                     ) {
                         Icon(
-                            modifier = Modifier.size(28.dp),
-                            imageVector = if (music.isFavorite) Icons.Rounded.CheckCircle else Icons.Rounded.AddCircle,
+                            modifier = Modifier.size(24.dp),
+                            imageVector = if (music.isFavorite) Icons.Rounded.CheckCircle else Icons.Rounded.AddCircleOutline,
                             contentDescription = if (music.isFavorite) "Remove from favorites" else "Add to favorites",
-                            tint = if (music.isFavorite) Color(0xFF2ECC71) else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (music.isFavorite) Color.Green else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

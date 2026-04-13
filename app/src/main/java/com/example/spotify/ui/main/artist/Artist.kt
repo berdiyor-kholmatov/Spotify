@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.sharp.Add
 import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material.icons.rounded.AddCircle
+import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -121,10 +122,10 @@ fun Artist( artist: String, state: ArtistState, onEvent: (ArtistEvents) -> Unit)
                     onClick = { onEvent(ArtistEvents.OnFavoriteToggle(music)) }
                 ) {
                     Icon(
-                        modifier = Modifier.size(28.dp),
-                        imageVector = if (music.isFavorite) Icons.Rounded.CheckCircle else Icons.Rounded.AddCircle,
+                        modifier = Modifier.size(24.dp),
+                        imageVector = if (music.isFavorite) Icons.Rounded.CheckCircle else Icons.Rounded.AddCircleOutline,
                         contentDescription = if (music.isFavorite) "Remove from favorites" else "Add to favorites",
-                        tint = if (music.isFavorite) Color(0xFF2ECC71) else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (music.isFavorite) Color.Green else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
