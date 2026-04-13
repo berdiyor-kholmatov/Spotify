@@ -14,7 +14,8 @@ class DataMapper @Inject constructor(): Mapper<MusicFileEntity, MusicFile> {
             artist = domain.artist,
             duration = domain.duration,
             filePath = domain.filePath,
-            albumId = domain.albumId
+            albumId = domain.albumId,
+            isFavorite = domain.isFavorite
         )
     }
 
@@ -25,7 +26,8 @@ class DataMapper @Inject constructor(): Mapper<MusicFileEntity, MusicFile> {
             artist = model.artist,
             duration = model.duration,
             filePath = model.filePath,
-            albumId = model.albumId
+            albumId = model.albumId,
+            isFavorite = model.isFavorite
         )
     }
 

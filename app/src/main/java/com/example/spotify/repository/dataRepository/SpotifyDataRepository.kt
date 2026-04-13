@@ -11,4 +11,8 @@ interface SpotifyDataRepository {
 
     suspend fun delete(id: Long)
 
+    suspend fun updateFavorite(id: Long, isFavorite: Boolean)
+
+    suspend fun getFavoriteIds(): List<Long>
+
 }

@@ -6,15 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.spotify.player.PlayerManagerViewModel
 import com.example.spotify.service.musicsLoaderService.MusicLoaderService
 import com.example.spotify.ui.theme.SpotifyTheme
-import com.example.spotify.ui.home.HomeViewModel
-import com.example.spotify.ui.mainView.appNavigation.AppNavigationDisplay
-import com.example.spotify.ui.mainView.mainView.MainView
+import com.example.spotify.ui.main.home.HomeViewModel
+import com.example.spotify.ui.navigation.AppNavigationDisplay
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

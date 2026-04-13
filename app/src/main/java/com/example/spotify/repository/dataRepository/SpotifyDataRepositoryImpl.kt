@@ -51,4 +51,10 @@ class SpotifyDataRepositoryImpl @Inject constructor(
     override suspend fun delete(id: Long) {
         spotifyDao.delete(id)
     }
+
+    override suspend fun updateFavorite(id: Long, isFavorite: Boolean) {
+        spotifyDao.updateFavorite(id, isFavorite)
+    }
+
+    override suspend fun getFavoriteIds(): List<Long> = spotifyDao.getFavoriteIds()
 }

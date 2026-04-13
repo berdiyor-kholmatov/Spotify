@@ -1,27 +1,12 @@
 package com.example.spotify.player
 
-import android.content.ContentUris
-import android.content.Context
-import android.graphics.Bitmap
 //import android.graphics.Color
-import android.net.Uri
 import androidx.compose.ui.graphics.Color
-import androidx.core.app.NotificationCompat
-import androidx.core.graphics.drawable.toBitmap
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.palette.graphics.Palette
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import com.example.spotify.R
 import com.example.spotify.domain.model.MusicFile
 import com.example.spotify.repository.dataRepository.SpotifyDataRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +35,13 @@ class PlayerManager @Inject constructor(
     private suspend fun observeMusicFiles() {
         repository.observeMusicFiles().collect { musics ->
             _playerState.update { state ->
-                state.copy(musics = musics)
+                val updatedSelected = state.selectedMusic?.id?.let { id ->
+                    musics.firstOrNull { it.id == id } ?: state.selectedMusic
+                }
+                state.copy(
+                    musics = musics,
+                    selectedMusic = updatedSelected
+                )
             }
         }
     }

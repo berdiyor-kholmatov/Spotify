@@ -2,7 +2,6 @@ package com.example.spotify.service.musicsLoaderService
 
 import android.app.Service
 import android.content.Intent
-import android.media.MediaMetadataRetriever
 import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
@@ -41,6 +40,7 @@ class MusicLoaderService : Service() {
     }
 
     private fun loadFiles() = serviceScope.launch(Dispatchers.Default) {
+        val favoriteIds = dataRepository.getFavoriteIds()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
@@ -85,8 +85,17 @@ class MusicLoaderService : Service() {
                     val filePath = it.getString(filePathColumn)
                     val albumId = it.getLong(albumIdColumn)
 
-
-                    musicFiles.add(MusicFile(id, name, artist, duration, filePath, albumId))
+                    musicFiles.add(
+                        MusicFile(
+                            id = id,
+                            name = name,
+                            artist = artist,
+                            duration = duration,
+                            filePath = filePath,
+                            albumId = albumId,
+                            isFavorite = favoriteIds.contains(id)
+                        )
+                    )
                 }
 
                 dataRepository.insert(musicFiles)
