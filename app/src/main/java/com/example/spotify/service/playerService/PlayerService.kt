@@ -273,7 +273,6 @@ class PlayerService: Service() {
                 }
             }
         }
-
     }
 
     fun stopTrackingProgress() {
